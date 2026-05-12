@@ -1,11 +1,15 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useMessagesStore } from '../stores/messages'
 import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
+const messagesStore = useMessagesStore()
 const router = useRouter()
 const menuOpen = ref(false)
+
+const unreadCount = computed(() => messagesStore.unreadCount)
 
 function logout() {
   auth.logout()
@@ -22,6 +26,10 @@ function toggleMenu() {
     <button @click="toggleMenu" class="menu-btn">☰</button>
     <router-link to="/feed" class="brand">Дом</router-link>
     <div class="nav-right">
+      <router-link to="/messages" class="nav-link">
+        💬
+        <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+      </router-link>
       <router-link to="/settings" class="nav-link">⚙️</router-link>
       <router-link :to="`/profile/${auth.user?.id}`" class="nav-link">
         {{ auth.user?.username }}
@@ -89,3 +97,21 @@ function toggleMenu() {
   }
 }
 </style>
+
+.nav-link {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #dc3545;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+}

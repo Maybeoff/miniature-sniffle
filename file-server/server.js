@@ -4,12 +4,19 @@ import multer from 'multer'
 import { randomUUID } from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import fs from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 
+// Создаем папку uploads если её нет
+const uploadsDir = path.join(__dirname, 'uploads')
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
 app.use(cors())
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use('/uploads', express.static(uploadsDir))
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
@@ -23,8 +30,23 @@ const upload = multer({
   storage,
   limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith('image/') && !file.mimetype.startsWith('video/')) {
-      return cb(new Error('Только изображения и видео'))
+    const allowedTypes = [
+      'image/',
+      'video/',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/',
+      'application/zip',
+      'application/x-zip-compressed',
+    ]
+    
+    const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type) || file.mimetype === type)
+    
+    if (!isAllowed) {
+      return cb(new Error('Неподдерживаемый тип файла'))
     }
     cb(null, true)
   },

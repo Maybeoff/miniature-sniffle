@@ -6,6 +6,27 @@ import { authMiddleware } from '../middleware/auth.js'
 const router = Router()
 router.use(authMiddleware)
 
+router.get('/search', (req, res) => {
+  try {
+    const { q } = req.query
+    if (!q || q.trim().length < 2) {
+      return res.json([])
+    }
+    
+    const users = db.prepare(`
+      SELECT id, username, email, avatarUrl, createdAt 
+      FROM users 
+      WHERE username LIKE ? OR email LIKE ?
+      LIMIT 20
+    `).all(`%${q}%`, `%${q}%`)
+    
+    res.json(users)
+  } catch (error) {
+    console.error('[SEARCH USERS] Error:', error)
+    res.status(500).json({ message: 'Ошибка поиска пользователей', error: error.message })
+  }
+})
+
 router.get('/:id', (req, res) => {
   try {
     const user = db.prepare('SELECT id, username, email, avatarUrl, createdAt FROM users WHERE id = ?').get(req.params.id)

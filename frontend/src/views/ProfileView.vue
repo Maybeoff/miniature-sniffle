@@ -1,15 +1,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { usePostsStore } from '../stores/posts'
+import { useMessagesStore } from '../stores/messages'
 import PostCard from '../components/PostCard.vue'
 import NavBar from '../components/NavBar.vue'
 import api from '../api'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const postsStore = usePostsStore()
+const messagesStore = useMessagesStore()
 
 const profile = ref(null)
 const userPosts = ref([])
@@ -36,6 +39,16 @@ async function toggleFollow() {
     console.error('Follow error:', e)
   }
 }
+
+async function sendMessage() {
+  try {
+    const conversation = await messagesStore.createConversation(route.params.id)
+    router.push('/messages')
+    await messagesStore.openConversation(conversation.id)
+  } catch (e) {
+    console.error('Message error:', e)
+  }
+}
 </script>
 
 <template>
@@ -60,6 +73,9 @@ async function toggleFollow() {
         <button v-if="!isOwn" @click="toggleFollow" class="follow-btn" :class="{ following: profile.isFollowing }">
           {{ profile.isFollowing ? 'Отписаться' : 'Подписаться' }}
         </button>
+        <button v-if="!isOwn" @click="sendMessage" class="message-btn">
+          💬 Написать
+        </button>
       </div>
     </div>
     <h3>Посты</h3>
@@ -80,16 +96,22 @@ async function toggleFollow() {
   font-size: 14px;
   color: #888;
 }
-.follow-btn {
+
+.follow-btn,
+.message-btn {
   margin-top: 12px;
-  background: #7c6aff;
-  color: #fff;
+  margin-right: 8px;
   border: none;
   padding: 8px 24px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.follow-btn {
+  background: #7c6aff;
+  color: #fff;
 }
 .follow-btn:hover {
   background: #6a58e0;
@@ -98,6 +120,14 @@ async function toggleFollow() {
   background: #2a2a2a;
   border: 1px solid #7c6aff;
   color: #7c6aff;
+}
+
+.message-btn {
+  background: #28a745;
+  color: #fff;
+}
+.message-btn:hover {
+  background: #218838;
 }
 </style>
 

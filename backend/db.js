@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 
 const db = new Database('social.db')
 
+// Создаем таблицы только если их нет
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
@@ -58,6 +59,55 @@ db.exec(`
     metadata TEXT,
     createdAt TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS conversations (
+    id TEXT PRIMARY KEY,
+    user1Id TEXT NOT NULL,
+    user2Id TEXT NOT NULL,
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user1Id) REFERENCES users(id),
+    FOREIGN KEY (user2Id) REFERENCES users(id),
+    UNIQUE(user1Id, user2Id)
+  );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,
+    conversationId TEXT NOT NULL,
+    senderId TEXT NOT NULL,
+    encryptedContent TEXT NOT NULL,
+    fileUrl TEXT,
+    fileName TEXT,
+    fileType TEXT,
+    createdAt TEXT DEFAULT (datetime('now')),
+    readAt TEXT,
+    FOREIGN KEY (conversationId) REFERENCES conversations(id),
+    FOREIGN KEY (senderId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS user_keys (
+    userId TEXT PRIMARY KEY,
+    publicKey TEXT NOT NULL,
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
 `)
+
+// Проверяем и добавляем новые колонки если их нет (миграция)
+try {
+  const columns = db.prepare("PRAGMA table_info(messages)").all()
+  const hasFileUrl = columns.some(col => col.name === 'fileUrl')
+  
+  if (!hasFileUrl) {
+    console.log('Migrating messages table: adding file columns...')
+    db.exec(`
+      ALTER TABLE messages ADD COLUMN fileUrl TEXT;
+      ALTER TABLE messages ADD COLUMN fileName TEXT;
+      ALTER TABLE messages ADD COLUMN fileType TEXT;
+    `)
+    console.log('Migration completed')
+  }
+} catch (error) {
+  console.log('Migration check:', error.message)
+}
 
 export default db

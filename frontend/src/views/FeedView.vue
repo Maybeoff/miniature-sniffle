@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePostsStore } from '../stores/posts'
 import { useAuthStore } from '../stores/auth'
+import { useMessagesStore } from '../stores/messages'
 import PostCard from '../components/PostCard.vue'
 import CreatePost from '../components/CreatePost.vue'
 import NavBar from '../components/NavBar.vue'
@@ -9,6 +10,7 @@ import api from '../api'
 
 const posts = usePostsStore()
 const auth = useAuthStore()
+const messagesStore = useMessagesStore()
 const filter = ref('all')
 const error = ref('')
 const following = ref([])
@@ -41,6 +43,12 @@ const filteredPosts = computed(() => {
 <template>
   <NavBar>
     <div class="sidebar-content">
+      <router-link to="/messages" class="filter-btn">
+        💬 Сообщения
+        <span v-if="messagesStore.unreadCount > 0" class="badge">
+          {{ messagesStore.unreadCount }}
+        </span>
+      </router-link>
       <button @click="filter = 'all'" :class="{ active: filter === 'all' }" class="filter-btn">
         Все посты
       </button>
@@ -57,6 +65,12 @@ const filteredPosts = computed(() => {
   </NavBar>
   
   <aside class="sidebar">
+    <router-link to="/messages" class="filter-btn">
+      💬 Сообщения
+      <span v-if="messagesStore.unreadCount > 0" class="badge">
+        {{ messagesStore.unreadCount }}
+      </span>
+    </router-link>
     <button @click="filter = 'all'" :class="{ active: filter === 'all' }" class="filter-btn">
       Все посты
     </button>
@@ -119,6 +133,25 @@ const filteredPosts = computed(() => {
   border-color: #7c6aff;
   color: #fff;
 }
+
+.filter-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge {
+  background: #dc3545;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+}
+
 .feed-page {
   max-width: 600px;
   margin: 24px auto;
