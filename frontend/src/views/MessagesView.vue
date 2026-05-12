@@ -452,6 +452,8 @@ function formatTime(dateString) {
   display: flex;
   flex-direction: column;
   background: #0a0a0a;
+  height: 100vh;
+  position: relative;
 }
 
 .no-conversation {
@@ -510,11 +512,13 @@ function formatTime(dateString) {
 .messages-list {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   background: #0a0a0a;
+  min-height: 0;
 }
 
 .message {
@@ -623,6 +627,10 @@ function formatTime(dateString) {
   border-top: 1px solid #2a2a2a;
   background: #1a1a1a;
   align-items: flex-end;
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 .attach-btn {
@@ -656,6 +664,8 @@ function formatTime(dateString) {
   font-size: 14px;
   background: #0a0a0a;
   color: #e4e4e4;
+  max-height: 120px;
+  min-height: 44px;
 }
 
 .message-input textarea::placeholder {
